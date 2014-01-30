@@ -17,3 +17,17 @@ if you want the top ten affected countries, you can grab the victims and take th
 
     GET /api/victims
     GET /api/victims/country/<country_code>
+    GET /api/victims/naics/<naics_code>
+    GET /api/victims/industry/<naics_code>
+    
+The API returns the same data if you request /victim/naics or /victim/industry. The alias is provides solely for conveniene.
+
+# Testing
+I need to write tests for many of these things but I'm not going to do it right now. I know, that's not very TDD of me. Anyway,
+I want to keep track of some of the things I should be testing
+
++ test that you get valid results when you give valid input
++ how does it handle mixed case input
++ how does it react when you give it a string and it expected an integer
++ how does it react when you give an integer and it expected a string
++ how does it react when you give valid input that has no results

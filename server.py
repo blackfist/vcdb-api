@@ -6,6 +6,8 @@ from datetime import datetime
 from bson.son import SON
 import apiconstants
 from operator import itemgetter,attrgetter
+import re
+
 api = Flask(__name__)
 
 def addFriendlyCountry(inArray):
@@ -28,6 +30,7 @@ def aggregateIndustry(inArray):
   returnArray = [{'_id':'31-33','friendly_name':'Manufacturing','count':0},
                  {'_id':'44-45','friendly_name':'Retail','count':0},
                  {'_id':'48-49','friendly_name':'Transportation','count':0}]
+  
   for eachIndustry in inArray:
     if eachIndustry['_id'] in ['31','32','33']:
       returnArray[0]['count'] += eachIndustry['count']
@@ -45,6 +48,10 @@ def aggregateIndustry(inArray):
         eachIndustry['friendly_name'] = 'Error'
     returnArray.append(eachIndustry)
 
+  for idx, eachIndustry in enumerate(returnArray):
+    if eachIndustry['count'] == 0:
+      del(returnArray[idx])
+      
   returnArray = sorted(returnArray,key=itemgetter('count'),reverse=True)
   return returnArray
   
@@ -84,6 +91,7 @@ def victims():
 
 @api.route('/api/victims/country/<country_code>')
 def victimByCountry(country_code):
+  country_code = country_code.upper()
   if country_code not in apiconstants.country_code_remap:
     return "{None}"
   answer = {}
@@ -103,12 +111,59 @@ def victimByCountry(country_code):
                                                                        
   answer['datetime'] = datetime.utcnow().isoformat()
   answer['employe_count'] = employee_count['result']
-  answer['country'] = addFriendlyCountry(country['result'])
-  answer['industry'] = addFriendlyIndustry(industry['result'])
-  answer['aggregate_industry'] = aggregateIndustry(industry['result'])
-  answer['count'] = country['result'][0]['count']
+  if len(country['result']) > 0:
+    answer['country'] = addFriendlyCountry(country['result'])
+  else:
+    answer['country'] = []
+  if len(industry['result']) > 0:
+    answer['industry'] = addFriendlyIndustry(industry['result'])
+    answer['aggregate_industry'] = aggregateIndustry(industry['result'])
+  else:
+    answer['industry'] = []
+    answer['aggregate_industry'] = []
+  if len(country['result']) > 0:
+    answer['count'] = country['result'][0]['count']
+  else:
+    answer['count'] = 0
   return json.dumps(answer)
 
+@api.route('/api/victims/naics/<naics>')
+@api.route('/api/victims/industry/<naics>')
+def victimByEmployee(naics):
+  try:
+    naics = str(int(naics))
+  except:
+    return json.dumps({'count':0})
+  answer = {}
+  regx = re.compile("^"+naics+".*")
+  employee_count = collection.aggregate([{'$match':{'victim.industry':{'$regex':regx}}},
+                                         {"$group":{"_id":"$victim.employee_count","count":{"$sum":1}}},
+                                         {"$sort": SON([("count", -1)])}
+                                         ])
+  country = collection.aggregate([{'$match':{'victim.industry':{'$regex':regx}}},
+                                         {"$group":{"_id":"$victim.country","count":{"$sum":1}}},
+                                         {"$sort": SON([("count", -1)])}
+                                         ])
+  industry = collection.aggregate([{'$match':{'victim.industry':{'$regex':regx}}},
+                                   {'$project':{'pair':{'$substr':['$victim.industry',0,2]}}},
+                                   {'$group':{'_id':'$pair','count':{'$sum':1}}},
+                                   {"$sort": SON([("count", -1)])}
+                                   ])
+  
+  answer['count'] = collection.find({'victim.industry':{'$regex':regx}}).count()
+  answer['datetime'] = datetime.utcnow().isoformat()
+  answer['employee_count'] = employee_count['result']
+  if len(country['result']) > 0:
+    answer['country'] = addFriendlyCountry(country['result'])
+  else:
+    answer['country'] = []
+  if len(industry['result']) > 0:
+    answer['industry'] = addFriendlyIndustry(industry['result'])
+    answer['aggregate_industry'] = aggregateIndustry(industry['result'])
+  else:
+    answer['industry'] = []
+    answer['aggregate_industry'] = []
+  return json.dumps(answer)
 
 if __name__ == '__main__':
   config = ConfigParser.RawConfigParser()
