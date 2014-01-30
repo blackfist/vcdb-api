@@ -4,7 +4,6 @@ from flask import Flask, render_template, request, redirect, url_for, Response
 import json
 from datetime import datetime
 from bson.son import SON
-from collections import defaultdict
 import apiconstants
 from operator import itemgetter,attrgetter
 api = Flask(__name__)
