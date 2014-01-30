@@ -45,7 +45,7 @@ def aggregateIndustry(inArray):
         eachIndustry['friendly_name'] = 'Error'
     returnArray.append(eachIndustry)
 
-  returnArray = sorted(returnArray,key=attrgetter('count'),reverse=True)
+  returnArray = sorted(returnArray,key=itemgetter('count'),reverse=True)
   return returnArray
   
 
