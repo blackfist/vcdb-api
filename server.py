@@ -5,18 +5,8 @@ import json
 from datetime import datetime
 from bson.son import SON
 from collections import defaultdict
-
+import apiconstants
 api = Flask(__name__)
-
-industry_remap = {'11':'Agriculture','21':'Mining','22':'Utilities',
-                  '23':'Construction','31':'Manufacturing','32':'Manufaturing',
-                  '33':'Manufacturing','42':'Wholesale Trade','44':'Retail',
-                  '45':'Retail','48':'Transportation','49':'Transportation',
-                  '51':'Information','52':'Finance','53':'Real Estate',
-                  '54':'Professional Services','56':'Administrative services',
-                  '61':'Educational Services','62':'Health Care',
-                  '71':'Recreation','72':'Hospitality',
-                  '81':'Other Services','92':'Public','00':'Unknown'}
 
 @api.route('/get_one')
 def getOne():
@@ -34,7 +24,7 @@ def victims():
   answer = {}
   answer['count'] = collection.count()
   answer['datetime'] = datetime.utcnow().isoformat()
-  employee_count = collection.aggregate([{"$group":{"_id":"$victim.employee_count","count":{"$sum":1}}}])
+  employee_count = collection.aggregate([{"$group":{"_id":"$victim.employee_count","count":{"$sum":1}}},{"$sort": SON([("count", -1)])}])
   answer['employee_count'] = employee_count['result']
   country_count = collection.aggregate([{"$group":{"_id":"$victim.country","count":{"$sum":1}}},{"$sort": SON([("count", -1)])}])
   answer['country'] = country_count['result']
