@@ -8,18 +8,34 @@ from collections import defaultdict
 import apiconstants
 api = Flask(__name__)
 
-@api.route('/get_one')
+def addFriendlyCountry(inArray):
+  for eachCountry in inArray:
+    try:
+      eachCountry['friendly_name'] = apiconstants.country_code_remap[eachCountry['_id']]
+    except:
+      eachCountry['friendly_name'] = 'Error'
+  return inArray
+
+def addFriendlyIndustry(inArray):
+  for eachIndustry in inArray:
+    try:
+      eachIndustry['friendly_name'] = apiconstants.industry_remap[eachIndustry['_id']]
+    except:
+      eachIndustry['friendly_name'] = 'Error'
+  return inArray
+
+@api.route('/api/get_one')
 def getOne():
   return json.dumps(collection.find_one({},{'_id':0}))
 
-@api.route('/get_one/pretty')
+@api.route('/api/get_one/pretty')
 def getPrettyOne():
   incident = json.dumps(collection.find_one({},{'_id':0}),sort_keys=True, indent=2)
   incident = incident.replace(' ', '&nbsp;')
   incident = incident.replace('\n', '<br />')
   return incident
 
-@api.route('/victims')
+@api.route('/api/victims')
 def victims():
   answer = {}
   answer['count'] = collection.count()
@@ -27,24 +43,46 @@ def victims():
   employee_count = collection.aggregate([{"$group":{"_id":"$victim.employee_count","count":{"$sum":1}}},{"$sort": SON([("count", -1)])}])
   answer['employee_count'] = employee_count['result']
   country_count = collection.aggregate([{"$group":{"_id":"$victim.country","count":{"$sum":1}}},{"$sort": SON([("count", -1)])}])
-  answer['country'] = country_count['result']
+  answer['country'] = addFriendlyCountry(country_count['result'])
   industry = collection.aggregate([{'$project':{'pair':{'$substr':['$victim.industry',0,2]}}},{'$group':{'_id':'$pair','count':{'$sum':1}}},{"$sort": SON([("count", -1)])}])
-  answer['industry'] = industry['result']
+  answer['industry'] = addFriendlyIndustry(industry['result'])
   for eachIndustry in answer['industry']:
     try:
       eachIndustry['friendly_name'] = apiconstants.industry_remap[eachIndustry['_id']]
     except:
       eachIndustry['friendly_name'] = 'Error'
-  for eachCountry in answer['country']:
-    try:
-      eachCountry['friendly_name'] = apiconstants.country_code_remap[eachCountry['_id']]
-    except:
-      eachCountry['friendly_name'] = 'Error'
     
   answer = json.dumps(answer)
   resp = Response(answer,status=200, mimetype='application/json')
   resp.headers['Access-Control-Allow-Origin'] = '*'
   return resp
+
+@api.route('/api/victims/country/<country_code>')
+def victimByCountry(country_code):
+  if country_code not in apiconstants.country_code_remap:
+    return "{None}"
+  answer = {}
+  employee_count = collection.aggregate([ {'$match':{'victim.country':country_code}},
+                                         {"$group":{"_id":"$victim.employee_count","count":{"$sum":1}}},
+                                         {"$sort": SON([("count", -1)])}
+                                         ])
+  country = collection.aggregate([ {'$match':{'victim.country':country_code}},
+                                  {"$group":{"_id":"$victim.country","count":{"$sum":1}}},
+                                  {"$sort": SON([("count", -1)])}
+                                  ])
+  industry = collection.aggregate([ {'$match':{'victim.country':country_code}},
+                                   {'$project':{'pair':{'$substr':['$victim.industry',0,2]}}},
+                                   {'$group':{'_id':'$pair','count':{'$sum':1}}},
+                                   {"$sort": SON([("count", -1)])}
+                                   ])
+                                                                       
+  answer['datetime'] = datetime.utcnow().isoformat()
+  answer['employe_count'] = employee_count['result']
+  answer['country'] = addFriendlyCountry(country['result'])
+  answer['industry'] = addFriendlyIndustry(industry['result'])
+  answer['count'] = country['result'][0]['count']
+  return json.dumps(answer)
+
 
 if __name__ == '__main__':
   config = ConfigParser.RawConfigParser()
