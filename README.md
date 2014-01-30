@@ -1,5 +1,16 @@
 # vcdb-api
-an API to return JSON data from the VCDB.
+an API to return JSON data from the VCDB. This API will make it easier to query live data for use in visualizations.
+
+# Setup
+You'll need a mongo server that you can access. Once the server is setup, put all of the VCDB incidents into a collection
+on the server. The VCDB repo has a utility called into-mongo.py which can automate this for you.  
+
+Next edit the file sample-database.cfg and rename the file to database.cfg. This is the configuration that the api
+will read to set up the application.  
+
+Finally, invoke the server by typing
+
+    python server.py
 
 # Methods
 ## Returning a single incident
