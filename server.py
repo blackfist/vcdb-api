@@ -32,9 +32,15 @@ def victims():
   answer['industry'] = industry['result']
   for eachIndustry in answer['industry']:
     try:
-      eachIndustry['friendly_name'] = industry_remap[eachIndustry['_id']]
+      eachIndustry['friendly_name'] = apiconstants.industry_remap[eachIndustry['_id']]
     except:
       eachIndustry['friendly_name'] = 'Error'
+  for eachCountry in answer['country']:
+    try:
+      eachCountry['friendly_name'] = apiconstants.country_code_remap[eachCountry['_id']]
+    except:
+      eachCountry['friendly_name'] = 'Error'
+    
   answer = json.dumps(answer)
   resp = Response(answer,status=200, mimetype='application/json')
   resp.headers['Access-Control-Allow-Origin'] = '*'
