@@ -63,13 +63,17 @@ def getPrettyOne():
 @api.route('/api/victims')
 def victims():
   answer = {}
+  employee_count = collection.aggregate([{"$group":{"_id":"$victim.employee_count","count":{"$sum":1}}},
+                                         {"$sort": SON([("count", -1)])}])
+  country_count = collection.aggregate([{"$group":{"_id":"$victim.country","count":{"$sum":1}}},
+                                        {"$sort": SON([("count", -1)])}])
+  industry = collection.aggregate([{'$project':{'pair':{'$substr':['$victim.industry',0,2]}}},
+                                   {'$group':{'_id':'$pair','count':{'$sum':1}}},
+                                   {"$sort": SON([("count", -1)])}])
   answer['count'] = collection.count()
   answer['datetime'] = datetime.utcnow().isoformat()
-  employee_count = collection.aggregate([{"$group":{"_id":"$victim.employee_count","count":{"$sum":1}}},{"$sort": SON([("count", -1)])}])
-  answer['employee_count'] = employee_count['result']
-  country_count = collection.aggregate([{"$group":{"_id":"$victim.country","count":{"$sum":1}}},{"$sort": SON([("count", -1)])}])
   answer['country'] = addFriendlyCountry(country_count['result'])
-  industry = collection.aggregate([{'$project':{'pair':{'$substr':['$victim.industry',0,2]}}},{'$group':{'_id':'$pair','count':{'$sum':1}}},{"$sort": SON([("count", -1)])}])
+  answer['employee_count'] = employee_count['result']
   answer['industry'] = addFriendlyIndustry(industry['result'])
   answer['aggregate_industry'] = aggregateIndustry(industry['result'])
     
