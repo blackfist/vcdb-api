@@ -38,16 +38,14 @@ def aggregateIndustry(inArray):
     if eachIndustry['_id'] in ['48','49']:
       returnArray[2]['count'] += eachIndustry['count']
       continue
-    try:
-      eachIndustry['friendly_name'] = apiconstants.industry_remap[eachIndustry['_id']]
-      returnArray.append(eachIndustry)
-    except:
-      eachIndustry['friendly_name'] = 'Error'
-      returnArray.append(eachIndustry)
-    # Neither of these sorting options work properly. The output is sorted, but 
-    # the value of some fields gets set to zero
-    #returnArray = sorted(returnArray,key=itemgetter('count'),reverse=True)
-    returnArray.sort(key=itemgetter('count'),reverse=True)
+
+    if eachIndustry['_id'] in apiconstants.industry_remap:
+        eachIndustry['friendly_name'] = apiconstants.industry_remap[eachIndustry['_id']]
+    else:
+        eachIndustry['friendly_name'] = 'Error'
+    returnArray.append(eachIndustry)
+
+  returnArray = sorted(returnArray,key=attrgetter('count'),reverse=True)
   return returnArray
   
 
