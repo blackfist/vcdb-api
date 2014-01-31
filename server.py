@@ -165,6 +165,10 @@ def victimByEmployee(naics):
     answer['aggregate_industry'] = []
   return json.dumps(answer)
 
+@api.route('/viz/demo')
+def getDemographics():
+  return render_template('demo.html')
+
 if __name__ == '__main__':
   config = ConfigParser.RawConfigParser()
   config.read('database.cfg')
