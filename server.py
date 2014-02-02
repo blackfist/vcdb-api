@@ -71,6 +71,32 @@ def getPrettyOne():
   incident = incident.replace('\n', '<br />')
   return incident
 
+@api.route('/api/incident_year')
+def getIncidentYear():
+  answer = {}
+  fillzero = []
+  years = collection.aggregate([{'$group':{'_id':'$timeline.incident.year','count':{'$sum':1}}},
+                                {'$sort' : SON([('count',-1)]) }
+                                ]);
+  answer['years_by_count'] = years['result']
+  answer['years_by_year'] = sorted(answer['years_by_count'],key=itemgetter('_id'),reverse=True)
+  answer['count'] = collection.count()
+  answer['datetime'] = datetime.utcnow().isoformat()
+  maxyear = answer['years_by_year'][0]['_id']
+  minyear = answer['years_by_year'][-1]['_id']
+  for each in range(maxyear,minyear-1,-1):
+    fillzero.append({'_id':each})
+  for each in fillzero:
+    each['count'] = 0
+    for year in answer['years_by_year']:
+      if year['_id'] == each['_id']:
+        each['count'] = year['count']
+  answer['years_by_year_fill_zero'] = fillzero
+  
+  return json.dumps(answer)
+                                           
+  
+
 @api.route('/api/victims')
 def victims():
   answer = {}

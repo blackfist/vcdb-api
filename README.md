@@ -33,6 +33,13 @@ if you want the top ten affected countries, you can grab the victims and take th
     
 The API returns the same data if you request /victim/naics or /victim/industry. The alias is provides solely for conveniene.
 
+## What year has the most incidents
+You can query the year for incidents with one request. This will return the list of incident years and the count of incidents in each year
+sorted by count of incidents (years\_by\_count). The response also includes the list of years sorted by year (descending)(years\_by\_year). 
+Finally, the answer includes the list of years sorted by year (descending) and including any missing years with a zero count (years\_by\_year\_fill\_zero).
+
+    GET /api/incident_year
+
 # Testing
 I need to write tests for many of these things but I'm not going to do it right now. I know, that's not very TDD of me. Anyway,
 I want to keep track of some of the things I should be testing
