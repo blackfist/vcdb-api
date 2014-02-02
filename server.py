@@ -94,6 +94,10 @@ def getIncidentYear():
   answer['years_by_year_fill_zero'] = fillzero
   
   return json.dumps(answer)
+
+@api.route('/viz/incident_year')
+def showIncidentYear():
+  return render_template('incident_year.html')
                                            
   
 

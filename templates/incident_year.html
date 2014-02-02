@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+      <link rel="stylesheet" href={{ url_for('static',filename="css/bootstrap.min.css")}}>
+        <style>
+            body {
+                padding-top: 50px;
+                padding-bottom: 20px;
+            }
+        </style>
+      <link rel="stylesheet" href={{ url_for('static',filename="css/bootstrap-theme.min.css")}}>
+      <link rel="stylesheet" href={{ url_for('static',filename="css/main.css")}}>
+
+      <script src={{ url_for('static',filename="js/vendor/modernizr-2.6.2.min.js")}}></script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+<div class="container">
+  <h1>Incident Count by Year</h1>
+  <div id="year1"></div>
+
+</div>
+
+
+<footer>
+
+</footer>
+</div> <!-- /container -->        
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+<script src={{ url_for('static',filename="js/vendor/bootstrap.min.js") }}></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src={{ url_for('static',filename='js/datamaps.world.min.js') }}></script>
+<script src="http://trifacta.github.io/vega/vega.js"></script>
+<script>
+  var year1 = {
+  "width": 2000,
+  "height": 400,
+  "padding": {"top": 10, "left": 60, "bottom": 20, "right": 10},
+  "data": [{'name':'table','values':[]}],
+  "scales": [
+    {"name":"x", "type":"ordinal", "range":"width", "domain":{"data":"table", "field":"data.x"}},
+    {"name":"y", "range":"height", "nice":true, "domain":{"data":"table", "field":"data.y"}}
+  ],
+  "axes": [
+    {"type":"x", "scale":"x", "title":"Year"},
+    {"type":"y", "scale":"y", "offset":0, "title":"Number of Incidents"}
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "from": {"data":"table"},
+      "properties": {
+        "enter": {
+          "x": {"scale":"x", "field":"data.x"},
+          "width": {"scale":"x", "band":true, "offset":-1},
+          "y": {"scale":"y", "field":"data.y"},
+          "y2": {"scale":"y", "value":0}
+        },
+        "update": { "fill": {"value":"#ED1C24"} },
+        "hover": { "fill": {"value":"red"} }
+      }
+    }
+  ]
+}
+function parse(spec) {
+  vg.parse.spec(spec, function(chart) { chart({el:"#year1"}).update(); });
+}   
+$.getJSON('/api/incident_year',function(data) { 
+  $(data.years_by_year_fill_zero).each( function(each) { year1.data[0].values.push({'x':this._id,'y':this.count}); } );
+  parse(year1);
+});
+
+</script>
+
+ 
+    </body>
+</html>
