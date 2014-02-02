@@ -12,10 +12,14 @@ api = Flask(__name__)
 
 def addFriendlyCountry(inArray):
   for eachCountry in inArray:
-    try:
+    if eachCountry['_id'] in apiconstants.country_code_remap:
       eachCountry['friendly_name'] = apiconstants.country_code_remap[eachCountry['_id']]
-    except:
+    else:
       eachCountry['friendly_name'] = 'Error'
+    if eachCountry['_id'] in apiconstants.country_code_3_remap:
+      eachCountry['abr3'] = apiconstants.country_code_3_remap[eachCountry['_id']]
+    else:
+      eachCountry['abr3'] = 'Error'
   return inArray
 
 def addFriendlyIndustry(inArray):

@@ -27,7 +27,18 @@
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
         <![endif]-->
 <div class="container">
-  <p>Put some text here</p>
+  <h1>English-speaking bias?</h1>
+  <p>In this view, the top 5 most represented countries in the VCDB are shaded dark red. All other countries after
+     the top five are shaded according to the number of incidents in that country.</p>
+  <div id="map1" style="position: relative; width: 800px; height: 480px;"></div>
+    <p>As you can see, english-speaking countries are very well represented compared to the rest of the world.</p>   
+  <h1>United States bias?</h1>
+  <p>When all the countries are shaded by the number of incidents in that country and the top five are not treated
+    differently, then the United States gets the maximum shade, and the rest of the world gets the minimum shade.
+    This is because the United States dominates the dataset with 14 times the number of incidents as the second-place
+    country, Great Britain.</p>
+  <div id="map2" style="position: relative; width: 800px; height: 480px;"></div>
+
 </div>
 
 
@@ -43,7 +54,61 @@
       <script src={{ url_for('static',filename='js/datamaps.world.min.js') }}></script>
 
       <script>
-        var demographics = $.getJSON('/api/victims');
+        // example stolen from https://github.com/markmarkoh/datamaps
+        var getFillKey = function(inCount,min,max){
+          var steps = (max - min) / 20
+          for (i=1; i<21; i++) {
+            if (inCount > (max - (steps*i))) { return "v"+ (21-i)}; };
+          return "v1";}
+
+        var fillData = {};
+        var unSkewedFillData = {}
+        var fillColors = {defaultFill:'#FFFFFF',
+                     v20: '#ED1C24',
+                     v19: '#EE272F',
+                     v18: '#EF323A',
+                     v17: '#F03D45',
+                     v16: '#F14850',
+                     v15: '#F2535B',
+                     v14: '#F35E66',
+                     v13: '#F46971',
+                     v12: '#F5747C',
+                     v11: '#F67F87',
+                     v10: '#F78A92',
+                     v9: '#F8959D',
+                     v8: '#F9A0A8',
+                     v7: '#FAABB3',
+                     v6: '#FBB6BE',
+                     v5: '#FCC2CA',
+                     v4: '#FDCED6',
+                     v3: '#FEDAE2',
+                     v2: '#FFE6EE',
+                     v1: 'FFF2FA'};
+
+        
+        var demographics = $.getJSON('/api/victims',function(data){
+          $(data.country).each(function (i) { fillData[this.abr3] = {fillKey: getFillKey(this.count,1,25)} } );
+          $(data.country).each(function (i) { unSkewedFillData[this.abr3] = {fillKey: getFillKey(this.count,1,1990)} } );
+          var map1 = new Datamap({element: document.getElementById('map1'),
+                                 fills: fillColors,
+                                 data: fillData,
+                                 geographyConfig: {
+                                   popupOnHover: false,
+                                   borderColor: '#000000',
+                                   highlightOnHover: false}});
+          var map2 = new Datamap({element: document.getElementById('map2'),
+                                 fills: fillColors,
+                                  data: unSkewedFillData,
+                                  geographyConfig: {
+                                    popupOnHover: false,
+                                    borderColor: '#000000',
+                                    highlightOnHover: false}});
+
+        });
+        
+
+
+        
       </script>
     </body>
 </html>
