@@ -39,6 +39,13 @@ sorted by count of incidents (years\_by\_count). The response also includes the 
 Finally, the answer includes the list of years sorted by year (descending) and including any missing years with a zero count (years\_by\_year\_fill\_zero).
 
     GET /api/incident_year
+    
+## Biggest incidents by data loss
+You can get a list of the largest data breaches in the data set which includes the year, victim name, data total, and actions in the incident.
+The default returns the top ten largest incidents, or you can specify the top n incidents.
+
+    GET /api/data_total
+    GET /api/data_total/top/<integer>
 
 # Testing
 I need to write tests for many of these things but I'm not going to do it right now. I know, that's not very TDD of me. Anyway,

@@ -100,9 +100,31 @@ def showIncidentYear():
   return render_template('incident_year.html')
 
 @api.route('/api/data_total')
-def getDataTotal():
+@api.route('/api/data_total/top/<int:returnCount>')
+def getDataTotal(returnCount=10):
   answer = {}
   answer['datetime'] = datetime.utcnow().isoformat()
+  answer['incidents'] = []
+  dataTotal = collection.aggregate([{'$match' : {'attribute.confidentiality.data_total' : {'$gt':1}}}, 
+                                    {'$project' : {'_id':0, 
+                                                    'year':'$timeline.incident.year',
+                                                    'victim':'$victim.victim_id',
+                                                    'data_total':'$attribute.confidentiality.data_total',
+                                                    'action':1 } },
+                                    {'$sort' : SON([("data_total", -1)])},
+                                    {'$limit' : returnCount}
+                              ]);
+  for eachIncident in dataTotal['result']:
+    actionArray = []
+    for eachAction in eachIncident['action'].keys():
+      if 'variety' in eachIncident['action'][eachAction]:
+        for eachVariety in eachIncident['action'][eachAction]['variety']:
+          actionArray.append(eachAction.title() + ':' + eachVariety)
+    answer['incidents'].append({'year':eachIncident['year'],
+                                'victim':eachIncident['victim'],
+                                'actions':actionArray,
+                                'data_total':eachIncident['data_total']})
+
   return json.dumps(answer)
 
 @api.route('/api/victims')
