@@ -127,6 +127,11 @@ def getDataTotal(returnCount=10):
 
   return json.dumps(answer)
 
+@api.route('/viz/data_total')
+@api.route('/viz/data_total/top/<int:returnCount>')
+def showDataTotal(returnCount=10):
+  return render_template('top-breaches.html',returnCount=returnCount)
+
 @api.route('/api/victims')
 def victims():
   answer = {}
