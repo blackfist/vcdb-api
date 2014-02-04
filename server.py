@@ -98,8 +98,12 @@ def getIncidentYear():
 @api.route('/viz/incident_year')
 def showIncidentYear():
   return render_template('incident_year.html')
-                                           
-  
+
+@api.route('/api/data_total')
+def getDataTotal():
+  answer = {}
+  answer['datetime'] = datetime.utcnow().isoformat()
+  return json.dumps(answer)
 
 @api.route('/api/victims')
 def victims():
