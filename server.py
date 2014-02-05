@@ -33,7 +33,8 @@ def addFriendlyIndustry(inArray):
 def aggregateIndustry(inArray):
   returnArray = [{'_id':'31-33','friendly_name':'Manufacturing','count':0},
                  {'_id':'44-45','friendly_name':'Retail','count':0},
-                 {'_id':'48-49','friendly_name':'Transportation','count':0}]
+                 {'_id':'48-49','friendly_name':'Transportation','count':0},
+                 {'_id':'52,55','friendly_name':'Finance','count':0}]
   
   for eachIndustry in inArray:
     if eachIndustry['_id'] in ['31','32','33']:
@@ -45,6 +46,8 @@ def aggregateIndustry(inArray):
     if eachIndustry['_id'] in ['48','49']:
       returnArray[2]['count'] += eachIndustry['count']
       continue
+    if eachIndustry['_id'] in ['52','55']:
+      returnArray[3]['count'] += eachIndustry['count']
 
     if eachIndustry['_id'] in apiconstants.industry_remap:
         eachIndustry['friendly_name'] = apiconstants.industry_remap[eachIndustry['_id']]
