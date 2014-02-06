@@ -160,6 +160,11 @@ def victims():
   resp.headers['Access-Control-Allow-Origin'] = '*'
   return resp
 
+@api.route('/api/victims/payment')
+def victimsOfPayment():
+  answer = {}
+  return json.dumps(answer)
+
 @api.route('/api/victims/country/<country_code>')
 def victimByCountry(country_code):
   country_code = country_code.upper()
