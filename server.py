@@ -133,6 +133,38 @@ def getDataTotal(returnCount=10):
 
   return json.dumps(answer)
 
+@api.route('/api/data_total/payment')
+@api.route('/api/data_total/payment/top/<int:returnCount>')
+def largestPaymentBreaches(returnCount=10):
+  answer = {}
+  answer['datetime'] = datetime.utcnow().isoformat()
+  answer['incidents'] = []
+  largestBreaches = collection.aggregate([ {'$unwind':'$attribute.confidentiality.data'},
+                                          {'$match':{'attribute.confidentiality.data.variety':'Payment',
+                                                     'attribute.confidentiality.data.amount':{'$gt':0}}},
+                                          {'$project':{'_id':0,
+                                                       'year':'$timeline.incident.year',
+                                                       'amount':'$attribute.confidentiality.data.amount',
+                                                       'victim':'$victim.victim_id',
+                                                       'action':1}},
+                                          {'$sort' : SON([("amount", -1)])},
+                                          {'$limit' : returnCount}
+                                          ]);
+  for eachIncident in largestBreaches['result']:
+    actionArray = []
+    for eachAction in eachIncident['action'].keys():
+      if 'variety' in eachIncident['action'][eachAction]:
+        for eachVariety in eachIncident['action'][eachAction]['variety']:
+          actionArray.append(eachAction.title() + ':' + eachVariety)
+    # Some incidents have a blank victim. Check for that.
+    if 'victim' not in eachIncident.keys():
+      eachIncident['victim'] = 'Unknown'
+    answer['incidents'].append({'year':eachIncident['year'],
+                                'victim':eachIncident['victim'],
+                                'actions':actionArray,
+                                'data_total':eachIncident['amount']})
+  return json.dumps(answer)
+
 @api.route('/viz/data_total')
 @api.route('/viz/data_total/top/<int:returnCount>')
 def showDataTotal(returnCount=10):
@@ -159,11 +191,6 @@ def victims():
   resp = Response(answer,status=200, mimetype='application/json')
   resp.headers['Access-Control-Allow-Origin'] = '*'
   return resp
-
-@api.route('/api/victims/payment')
-def victimsOfPayment():
-  answer = {}
-  return json.dumps(answer)
 
 @api.route('/api/victims/country/<country_code>')
 def victimByCountry(country_code):

@@ -27,12 +27,16 @@
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
         <![endif]-->
 <div class="container">
-  <h1>Biggest data breaches of all time (all types of data)</h1>
+  <h1>All types of Data</h1>
+  <h2>Biggest data breaches of all time (all types of data)</h2>
   <table id="tops" class="table table-bordered table-striped table-condensed table-hover">
     <tr><th>Year</th><th>Victim</th><th>Data Total</th><th>Actions</th></tr>
   </table>
-  <h1>Biggest data breaches of all time (all types of data)</h1>
+  <h2>Biggest data breaches of all time (all types of data)</h2>
   <div id="breach-chart"></div>
+  
+  <h1>Biggest payment card breaches</h1>
+  <table id="topPayment" class="table table-bordered table-striped table-condensed table-hover">
 
 </div>
 
@@ -78,6 +82,15 @@
           breachchart['data'].push({'name':'table','values':data.incidents});
           parse(breachchart);
           });
+        
+        $.getJSON('/api/data_total/payment/top/{{returnCount}}', function(data) {
+          $(data.incidents).each( function(eachIncident) {
+            var actionString = "";
+            if (this.actions.length == 0) { actionString="Unknown";};
+            $(this.actions).each( function(eachAction) { actionString = actionString + this + "<br>"});
+            $('#topPayment').append("<tr><td>"+this.year+"</td><td>"+this.victim+"</td><td>"+this.data_total+"</td><<td>"+actionString+"</td></tr>");
+          });
+        });
 </script>
 
 
