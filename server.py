@@ -123,6 +123,9 @@ def getDataTotal(returnCount=10):
       if 'variety' in eachIncident['action'][eachAction]:
         for eachVariety in eachIncident['action'][eachAction]['variety']:
           actionArray.append(eachAction.title() + ':' + eachVariety)
+    # Some incidents have a blank victim. Check for that.
+    if 'victim' not in eachIncident.keys():
+      eachIncident['victim'] = 'Unknown'
     answer['incidents'].append({'year':eachIncident['year'],
                                 'victim':eachIncident['victim'],
                                 'actions':actionArray,

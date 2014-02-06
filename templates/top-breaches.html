@@ -27,9 +27,12 @@
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
         <![endif]-->
 <div class="container">
+  <h1>Biggest data breaches of all time (all types of data)</h1>
   <table id="tops" class="table table-bordered table-striped table-condensed table-hover">
     <tr><th>Year</th><th>Victim</th><th>Data Total</th><th>Actions</th></tr>
   </table>
+  <h1>Biggest data breaches of all time (all types of data)</h1>
+  <div id="breach-chart"></div>
 
 </div>
 
@@ -42,7 +45,29 @@
 
       <script src={{ url_for('static',filename="js/vendor/bootstrap.min.js") }}></script>
       <script src="http://d3js.org/d3.v3.min.js"></script>
+      <script src="http://trifacta.github.io/vega/vega.js"></script>
       <script>
+        function parse(spec) {
+          vg.parse.spec(spec, function(chart) { chart({el:"#breach-chart"}).update(); });
+         }
+        
+        var breachchart = {'width':800,'height':400,
+                           "padding": {"top": 10, "left": 200, "bottom": 40, "right": 40},
+                           'data':[],'scales':[],'axes':[],'marks':[]};
+        breachchart['scales'].push({'name':'x-scale',"range":"width",'nice':true,"domain":{"data":"table", "field":"data.data_total"}});
+        breachchart['scales'].push({'name':'y-scale','range':'height','type':'ordinal','domain':{'data':'table','field':'data.victim'}});
+        breachchart['axes'].push({'type':'x','scale':'x-scale','title':'Number of Incidents'});
+        breachchart['axes'].push({'type':'y','scale':'y-scale'});
+        breachchart['marks'].push({'type':'rect', 'from':{'data':'table'}, 
+                                   'properties':{'update':{'fill':{'value':'#ED1C24'}}}});
+
+        var enterProperty = {'x':{'scale':'x-scale','value':0}};
+        enterProperty['width'] = {'scale':'x-scale','field':'data.data_total'};
+        enterProperty['y'] = {'scale':'y-scale','field':'data.victim'};
+        enterProperty['height'] = {'scale':'y-scale','band':true,'offset':-1}
+        breachchart['marks'][0]['properties']['enter'] = enterProperty;
+        
+        
         $.getJSON('/api/data_total/top/{{returnCount}}', function(data) {
           $(data.incidents).each( function(eachIncident) {
             var actionString = ""
@@ -50,6 +75,8 @@
             $(this.actions).each( function(eachAction) { actionString = actionString + this + "<br>"});
             $('#tops').append("<tr><td>"+this.year+"</td><td>"+this.victim+"</td><td>"+this.data_total+"</td><<td>"+actionString+"</td></tr>");
               });
+          breachchart['data'].push({'name':'table','values':data.incidents});
+          parse(breachchart);
           });
 </script>
 
