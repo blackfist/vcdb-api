@@ -36,7 +36,12 @@
   <div id="breach-chart"></div>
   
   <h1>Biggest payment card breaches</h1>
+  <h2>Payment card breaches (by record count)</h2>
   <table id="topPayment" class="table table-bordered table-striped table-condensed table-hover">
+    <tr><th>Year</th><th>Victim</th><th>Data Total</th><th>Actions</th>
+  </table>
+  <h2>Payment card breaches (by record count)</h2>
+  <div id="TopPaymentChart"></div>
 
 </div>
 
@@ -54,6 +59,9 @@
         function parse(spec) {
           vg.parse.spec(spec, function(chart) { chart({el:"#breach-chart"}).update(); });
          }
+        function paymentParse(spec) {
+          vg.parse.spec(spec, function(chart) { chart({el:"#TopPaymentChart"}).update(); });
+         }
         
         var breachchart = {'width':800,'height':400,
                            "padding": {"top": 10, "left": 200, "bottom": 40, "right": 40},
@@ -70,6 +78,8 @@
         enterProperty['y'] = {'scale':'y-scale','field':'data.victim'};
         enterProperty['height'] = {'scale':'y-scale','band':true,'offset':-1}
         breachchart['marks'][0]['properties']['enter'] = enterProperty;
+        
+        var paymentChart = breachchart
         
         
         $.getJSON('/api/data_total/top/{{returnCount}}', function(data) {
@@ -90,6 +100,8 @@
             $(this.actions).each( function(eachAction) { actionString = actionString + this + "<br>"});
             $('#topPayment').append("<tr><td>"+this.year+"</td><td>"+this.victim+"</td><td>"+this.data_total+"</td><<td>"+actionString+"</td></tr>");
           });
+          paymentChart['data'].push({'name':'table','values':data.incidents});
+          paymentParse(paymentChart);
         });
 </script>
 

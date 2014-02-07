@@ -42,10 +42,12 @@ Finally, the answer includes the list of years sorted by year (descending) and i
     
 ## Biggest incidents by data loss
 You can get a list of the largest data breaches in the data set which includes the year, victim name, data total, and actions in the incident.
-The default returns the top ten largest incidents, or you can specify the top n incidents.
+The default returns the top ten largest incidents, or you can specify the top n incidents. There is also a specific query to get the largest
+payment card breaches.
 
     GET /api/data_total
     GET /api/data_total/top/<integer>
+    GET /api/data_total/payment/top/<integer>
 
 # Testing
 I need to write tests for many of these things but I'm not going to do it right now. I know, that's not very TDD of me. Anyway,
