@@ -230,6 +230,21 @@ def victimByCountry(country_code):
     answer['count'] = 0
   return json.dumps(answer)
 
+@api.route('/api/victims/payment')
+def getPaymentVictims():
+  answer = {'country':[]}
+  answer['datetime'] = datetime.utcnow().isoformat()
+  paymentVictims = collection.aggregate([ {'$unwind':'$attribute.confidentiality.data'},
+                                          {'$match':{'attribute.confidentiality.data.variety':'Payment',
+                                                     'attribute.confidentiality.data.amount':{'$gt':0}}},
+                                          {"$group":{"_id":"$victim.country","count":{"$sum":1}}},
+                                          {"$sort": SON([("count", -1)])}
+                                          ])
+  if len(paymentVictims['result']) > 0:
+    answer['country'] = addFriendlyCountry(paymentVictims['result'])
+    return json.dumps(answer)
+  
+
 @api.route('/api/victims/naics/<naics>')
 @api.route('/api/victims/industry/<naics>')
 def victimByEmployee(naics):

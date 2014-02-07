@@ -38,6 +38,9 @@
     This is because the United States dominates the dataset with 14 times the number of incidents as the second-place
     country, Great Britain.</p>
   <div id="map2" style="position: relative; width: 800px; height: 480px;"></div>
+  <h1>Payment Card Breaches</h1>
+  <p>In this view only breaches that resulted in potential or confirmed exposure of payment information is counted.</p>
+  <div id="map3" style="position: relative; width: 800px; height: 480px;"></div>
 
 </div>
 
@@ -62,6 +65,7 @@
           return "v1";}
 
         var fillData = {};
+        var paymentFillData = {}
         var unSkewedFillData = {}
         var fillColors = {defaultFill:'#FFFFFF',
                      v20: '#ED1C24',
@@ -104,6 +108,17 @@
                                     borderColor: '#000000',
                                     highlightOnHover: false}});
 
+        });
+        
+        var paymentData = $.getJSON('/api/victims/payment', function(data) {
+          $(data.country).each(function(i) { paymentFillData[this.abr3] = {fillKey: getFillKey(this.count,1,2) } } );
+          var map3 = new Datamap({element: document.getElementById('map3'),
+                                  fills: fillColors,
+                                  data: paymentFillData,
+                                  geographyConfig: {
+                                    popupOnHover: false,
+                                    borderColor: '#000000',
+                                    highlightOnHover: false}});
         });
         
 
