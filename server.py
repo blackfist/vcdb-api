@@ -143,7 +143,7 @@ def getDataBreachBins():
                                    {'$project':{'_id':0,'data_total':'$attribute.confidentiality.data_total'}}
                                    ]);
   for eachNumber in dataBins['result']:
-    binNumber = eachNumber['data_total']/1000000
+    binNumber = eachNumber['data_total']/1000
     bins[binNumber] = bins.get(binNumber,0) + 1
   answer['bins'] = bins
   return json.dumps(answer)
@@ -251,7 +251,8 @@ def getPaymentVictims():
   answer = {'country':[]}
   answer['datetime'] = datetime.utcnow().isoformat()
   paymentVictims = collection.aggregate([ {'$unwind':'$attribute.confidentiality.data'},
-                                          {'$match':{'attribute.confidentiality.data.variety':'Payment'}},
+                                          {'$match':{'attribute.confidentiality.data.variety':'Payment',
+                                                     'attribute.confidentiality.data.amount':{'$gt':0}}},
                                           {"$group":{"_id":"$victim.country","count":{"$sum":1}}},
                                           {"$sort": SON([("count", -1)])}
                                           ])
