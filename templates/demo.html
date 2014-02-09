@@ -41,6 +41,9 @@
   <h1>Payment Card Breaches</h1>
   <p>In this view only breaches that resulted in potential or confirmed exposure of payment information is counted.</p>
   <div id="map3" style="position: relative; width: 800px; height: 480px;"></div>
+  <h1>Large Breaches</h1>
+  <p>This view is countries shaded by the number of breaches where at least 1 million records were exposed.</p>
+  <div id='map4' style="position: relative; width: 800px; height: 480px;"></div>
 
 </div>
 
@@ -67,6 +70,7 @@
         var fillData = {};
         var paymentFillData = {}
         var unSkewedFillData = {}
+        var bigFillData = {}
         var fillColors = {defaultFill:'#FFFFFF',
                      v20: '#ED1C24',
                      v19: '#EE272F',
@@ -91,7 +95,7 @@
 
         
         var demographics = $.getJSON('/api/victims',function(data){
-          $(data.country).each(function (i) { fillData[this.abr3] = {fillKey: getFillKey(this.count,1,25)} } );
+          $(data.country).each(function (i) { fillData[this.abr3] = {fillKey: getFillKey(this.count,1,33)} } );
           $(data.country).each(function (i) { unSkewedFillData[this.abr3] = {fillKey: getFillKey(this.count,1,1990)} } );
           var map1 = new Datamap({element: document.getElementById('map1'),
                                  fills: fillColors,
@@ -115,6 +119,17 @@
           var map3 = new Datamap({element: document.getElementById('map3'),
                                   fills: fillColors,
                                   data: paymentFillData,
+                                  geographyConfig: {
+                                    popupOnHover: false,
+                                    borderColor: '#000000',
+                                    highlightOnHover: false}});
+        });
+        
+        var bigVictims = $.getJSON('/api/victims/big', function(data) {
+          $(data.country).each(function(i) { bigFillData[this.abr3] = {fillKey: getFillKey(this.count,1,5) } } );
+          var map4 = new Datamap({element: document.getElementById('map4'),
+                                  fills: fillColors,
+                                  data: bigFillData,
                                   geographyConfig: {
                                     popupOnHover: false,
                                     borderColor: '#000000',
