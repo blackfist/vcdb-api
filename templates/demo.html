@@ -111,7 +111,7 @@
         });
         
         var paymentData = $.getJSON('/api/victims/payment', function(data) {
-          $(data.country).each(function(i) { paymentFillData[this.abr3] = {fillKey: getFillKey(this.count,1,2) } } );
+          $(data.country).each(function(i) { paymentFillData[this.abr3] = {fillKey: getFillKey(this.count,1,11) } } );
           var map3 = new Datamap({element: document.getElementById('map3'),
                                   fills: fillColors,
                                   data: paymentFillData,

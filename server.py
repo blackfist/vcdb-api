@@ -235,8 +235,7 @@ def getPaymentVictims():
   answer = {'country':[]}
   answer['datetime'] = datetime.utcnow().isoformat()
   paymentVictims = collection.aggregate([ {'$unwind':'$attribute.confidentiality.data'},
-                                          {'$match':{'attribute.confidentiality.data.variety':'Payment',
-                                                     'attribute.confidentiality.data.amount':{'$gt':0}}},
+                                          {'$match':{'attribute.confidentiality.data.variety':'Payment'}},
                                           {"$group":{"_id":"$victim.country","count":{"$sum":1}}},
                                           {"$sort": SON([("count", -1)])}
                                           ])
