@@ -133,6 +133,22 @@ def getDataTotal(returnCount=10):
 
   return json.dumps(answer)
 
+@api.route('/api/data_total/bins')
+def getDataBreachBins():
+  answer = {}
+  bins = {}
+  answer['datetime'] = datetime.utcnow().isoformat()
+  answer['count'] = collection.find({'attribute.confidentiality.data_total':{'$gt':1}}).count()
+  dataBins = collection.aggregate([ {'$match':{'attribute.confidentiality.data_total':{'$gt':1}}},
+                                   {'$project':{'_id':0,'data_total':'$attribute.confidentiality.data_total'}}
+                                   ]);
+  for eachNumber in dataBins['result']:
+    binNumber = eachNumber['data_total']/1000000
+    bins[binNumber] = bins.get(binNumber,0) + 1
+  answer['bins'] = bins
+  return json.dumps(answer)
+  
+
 @api.route('/api/data_total/payment')
 @api.route('/api/data_total/payment/top/<int:returnCount>')
 def largestPaymentBreaches(returnCount=10):
@@ -242,7 +258,25 @@ def getPaymentVictims():
                                           ])
   if len(paymentVictims['result']) > 0:
     answer['country'] = addFriendlyCountry(paymentVictims['result'])
-    return json.dumps(answer)
+  else:
+    answer['country'] = []
+  return json.dumps(answer)
+
+@api.route('/api/victims/big')
+def getBigVictims():
+  answer = {}
+  answer['datetime'] = datetime.utcnow().isoformat()
+  answer['count'] = collection.find({'attribute.confidentiality.data_total':{'$gt':1000000}}).count()
+  bigVictims = collection.aggregate([ {'$match':{'attribute.confidentiality.data_total':{'$gt':1000000}}},
+                                      {'$project':{'country':'$victim.country','_id':0}},
+                                      {'$group':{'_id':'$country','count':{'$sum':1}}},
+                                      {'$sort': SON([('count',-1)])}
+                                      ])
+  if len(bigVictims['result']) > 0:
+    answer['country'] = addFriendlyCountry(bigVictims['result'])
+  else:
+    answer['country'] = []
+  return json.dumps(answer)
   
 
 @api.route('/api/victims/naics/<naics>')

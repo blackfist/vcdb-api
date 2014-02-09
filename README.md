@@ -30,6 +30,8 @@ if you want the top ten affected countries, you can grab the victims and take th
     GET /api/victims/country/<country_code>
     GET /api/victims/naics/<naics_code>
     GET /api/victims/industry/<naics_code>
+    GET /api/victims/payment
+    GET /api/victims/big
     
 The API returns the same data if you request /victim/naics or /victim/industry. The alias is provides solely for conveniene.
 
