@@ -44,6 +44,8 @@
   <h1>Large Breaches</h1>
   <p>This view is countries shaded by the number of breaches where at least 1 million records were exposed.</p>
   <div id='map4' style="position: relative; width: 800px; height: 480px;"></div>
+  <h1>Industry Representation</h1>
+  <div id="industry-chart"></div>
 
 </div>
 
@@ -58,6 +60,7 @@
       <script src="http://d3js.org/d3.v3.min.js"></script>
       <script src="http://d3js.org/topojson.v1.min.js"></script>
       <script src={{ url_for('static',filename='js/datamaps.world.min.js') }}></script>
+      <script src="http://trifacta.github.io/vega/vega.js"></script>
 
       <script>
         // example stolen from https://github.com/markmarkoh/datamaps
@@ -91,8 +94,25 @@
                      v4: '#FDCED6',
                      v3: '#FEDAE2',
                      v2: '#FFE6EE',
-                     v1: 'FFF2FA'};
-
+                     v1: '#FFF2FA'};
+        
+        function parse(spec) {
+          vg.parse.spec(spec, function(chart) { chart({el:"#industry-chart"}).update(); });
+         }
+        
+        var industryChart = {'width':800,'height':400,
+                           "padding": {"top": 10, "left": 200, "bottom": 40, "right": 40},
+                             'data':[],'scales':[],'axes':[],'marks':[]};
+        industryChart['scales'].push({'name':'x-scale',"range":"width",'nice':true,"domain":{"data":"table", "field":"data.count"}});
+        industryChart['scales'].push({'name':'y-scale','range':'height','type':'ordinal','domain':{'data':'table','field':'data.friendly_name'}});
+        industryChart['axes'].push({'type':'x','scale':'x-scale','title':'Number of Incidents'});
+        industryChart['axes'].push({'type':'y','scale':'y-scale'});
+        industryChart['marks'].push({'type':'rect', 'from':{'data':'table'}, 
+                                   'properties':{'update':{'fill':{'value':'#ED1C24'}}}});
+        industryChart['marks'][0]['properties']['enter'] = {'x':{'scale':'x-scale','value':0},
+                                                            'width':{'scale':'x-scale','field':'data.count'},
+                                                            'y':{'scale':'y-scale','field':'data.friendly_name'},
+                                                            'height':{'scale':'y-scale','band':true,'offset':-1}};
         
         var demographics = $.getJSON('/api/victims',function(data){
           $(data.country).each(function (i) { fillData[this.abr3] = {fillKey: getFillKey(this.count,1,33)} } );
@@ -111,6 +131,8 @@
                                     popupOnHover: false,
                                     borderColor: '#000000',
                                     highlightOnHover: false}});
+          industryChart['data'].push({'name':'table','values':data.aggregate_industry.slice(0,9)});
+          parse(industryChart);
 
         });
         
