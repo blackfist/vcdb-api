@@ -7,6 +7,7 @@ from bson.son import SON
 import apiconstants
 from operator import itemgetter,attrgetter
 import re
+from numpy import random
 
 api = Flask(__name__)
 
@@ -101,6 +102,70 @@ def getIncidentYear():
 @api.route('/viz/incident_year')
 def showIncidentYear():
   return render_template('incident_year.html')
+
+@api.route('/api/timeline')
+@api.route('/api/timeline/threshold/<int:thresh>')
+def getTimeline(thresh=1000000):
+  earliest = int(request.args.get('earliest', '0'))
+  answer = {}
+  answer['datetime'] = datetime.utcnow().isoformat()
+  timesReturned = collection.aggregate([ {'$match':{'attribute.confidentiality.data_total':{'$gte':thresh}}},
+                                 {'$match':{'plus.timeline.notification.year':{'$gte':earliest}}},
+                                 {'$project':{'_id':0,'year':'$plus.timeline.notification.year','month':'$plus.timeline.notification.month'}}
+                                 ])['result']
+  times = {}
+  timesArray = []
+  minyear= 9999
+  maxyear=0
+  for eachTime in timesReturned:
+    if 'year' not in eachTime:
+      continue
+    if 'month' not in eachTime:
+      continue
+    if eachTime['year'] < minyear:
+      minyear = eachTime['year']
+    if eachTime['year'] > maxyear:
+      maxyear = eachTime['year']
+    timestring = str(eachTime['year']) + str(eachTime['month']).zfill(2)
+    times[timestring] = times.get(timestring,0) + 1
+  # now we want to add the gap years in
+  for year in range(minyear,maxyear+1):
+    for month in range(1,13):
+      if year == datetime.now().year and month >= datetime.now().month:
+        continue
+      times[str(year)+str(month).zfill(2)] = times.get(str(year)+str(month).zfill(2),0)
+  for eachTime in times.keys():
+    timesArray.append({'date':eachTime,'count':times[eachTime]})
+  timesArray = sorted(timesArray,key=itemgetter('date'))
+  
+  # Lets make a table count of months where incidents were disclosed equals the index of the table
+  frequencies = {}
+  percentages = {}
+  combined = {}
+  perfectFrequencies = {}
+  sumOfCounts = 0
+  for eachDate in timesArray:
+    frequencies[eachDate['count']] = frequencies.get(eachDate['count'],0) + 1
+    sumOfCounts += eachDate['count']
+  for eachKey in frequencies.keys():
+    percentages[eachKey] = float(frequencies[eachKey]) / len(timesArray) 
+  for eachKey in frequencies.keys():
+    combined[eachKey] = {'count':frequencies[eachKey],'percentage':percentages[eachKey]}
+  
+  # Estimate a lambda for a poisson distribution - just because
+  answer['lambda'] = float(sumOfCounts) / len(timesArray)
+  perfectPoisson = list(random.poisson(answer['lambda'],5000))
+  for i in range( min(perfectPoisson),max(perfectPoisson)+1):
+    perfectFrequencies[i] = {'percentage':perfectPoisson.count(i) / float(5000)}
+  
+                      
+  answer['count'] = len(times)
+  answer['timeline'] = timesArray
+  #answer['frequencies'] = frequencies
+  #answer['percentages'] = percentages
+  answer['observed'] = combined
+  answer['perfect'] = perfectFrequencies
+  return json.dumps(answer)
 
 @api.route('/api/data_total')
 @api.route('/api/data_total/top/<int:returnCount>')

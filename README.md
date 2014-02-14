@@ -41,6 +41,16 @@ sorted by count of incidents (years\_by\_count). The response also includes the 
 Finally, the answer includes the list of years sorted by year (descending) and including any missing years with a zero count (years\_by\_year\_fill\_zero).
 
     GET /api/incident_year
+
+## Months with data breaches
+I wanted to be able to make a distribution of how many breaches are reported in a month. How many months had zero, one, two, etc. So I made 
+this up so I could query that. I also wanted to be able to limit it to breaches of a certain size. This will fill in missing months with
+zero values
+
+    GET /api/timeline # counts every incident of 1 million+ records from the earliest record to today
+    GET /api/timeline/threshold/<integer> # every incident greater than or equal to that integer
+    GET /api/timeline?earliest=2011 # gets every incident of 1 million+ records starting at January 2011
+    GET /api/timeline/threshold/50000?earliest=2011 # every incident since Jan 2011 with at least 50,000 records
     
 ## Biggest incidents by data loss
 You can get a list of the largest data breaches in the data set which includes the year, victim name, data total, and actions in the incident.
