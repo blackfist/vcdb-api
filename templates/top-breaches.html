@@ -42,6 +42,12 @@
   </table>
   <h2>Payment card breaches (by record count)</h2>
   <div id="TopPaymentChart"></div>
+  
+  <h1>Distribution of Large Incidents</h1>
+  <h2>Poisson Distribution?</h2>
+  <p id="poissonExplanation">The red bars show the frequency of incidents reported in a month. Blue bars show a perfect poisson distribution.<br/>
+  Showing data from 2012 through present day, breaches large than 1,000,000.</p>
+  <div id="poissonChart"></div>
 
 </div>
 
@@ -79,7 +85,15 @@
         enterProperty['height'] = {'scale':'y-scale','band':true,'offset':-1}
         breachchart['marks'][0]['properties']['enter'] = enterProperty;
         
-        var paymentChart = breachchart
+        var paymentChart = breachchart;
+        
+        $.getJSON('/api/timeline?earliest=2012', function(data) {
+          vg.parse.spec(data.vega, function(chart) { chart({el:"#poissonChart",renderer:'svg'}).update(); });
+          $('#poissonExplanation').append(' Lambda estimated is ' + data.lambda + '.');
+        });
+
+                                                      
+
         
         
         $.getJSON('/api/data_total/top/{{returnCount}}', function(data) {

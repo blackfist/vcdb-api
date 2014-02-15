@@ -8,6 +8,8 @@ import apiconstants
 from operator import itemgetter,attrgetter
 import re
 from numpy import random
+import pandas as pd
+import vincent
 
 api = Flask(__name__)
 
@@ -138,33 +140,50 @@ def getTimeline(thresh=1000000):
     timesArray.append({'date':eachTime,'count':times[eachTime]})
   timesArray = sorted(timesArray,key=itemgetter('date'))
   
-  # Lets make a table count of months where incidents were disclosed equals the index of the table
-  frequencies = {}
-  percentages = {}
-  combined = {}
-  perfectFrequencies = {}
-  sumOfCounts = 0
-  for eachDate in timesArray:
-    frequencies[eachDate['count']] = frequencies.get(eachDate['count'],0) + 1
-    sumOfCounts += eachDate['count']
-  for eachKey in frequencies.keys():
-    percentages[eachKey] = float(frequencies[eachKey]) / len(timesArray) 
-  for eachKey in frequencies.keys():
-    combined[eachKey] = {'count':frequencies[eachKey],'percentage':percentages[eachKey]}
+  observedCounts = []
+  for time in timesArray:
+    observedCounts.append(time['count'])
   
   # Estimate a lambda for a poisson distribution - just because
-  answer['lambda'] = float(sumOfCounts) / len(timesArray)
+  perfectFrequencies = []
+  answer['lambda'] = round(float(sum(observedCounts)) / len(timesArray),2)
   perfectPoisson = list(random.poisson(answer['lambda'],5000))
-  for i in range( min(perfectPoisson),max(perfectPoisson)+1):
-    perfectFrequencies[i] = {'percentage':perfectPoisson.count(i) / float(5000)}
+  for i in range( min(perfectPoisson),max(perfectPoisson)):
+    perfectFrequencies.append(round(perfectPoisson.count(i) / float(5000),2))
   
-                      
+  # Build objects for the stats visualization
+  categories = ['Poisson','Observed']
+  index = []
+  observedFrequencies = []
+  for i in range(min(min(perfectPoisson),min(observedCounts)),max(max(perfectPoisson),max(observedCounts))):
+    index.append(str(i))
+    observedFrequencies.append(round(observedCounts.count(i)/float(len(observedCounts)),2))
+  #print "observedFrequencies is %s. Sum of that is %s." % (observedFrequencies,sum(observedFrequencies))
+  #print "index is %s" % index
+  #print "perfectFrequencies is %s. Sum of that is %s." %(perfectFrequencies,sum(perfectFrequencies))
+  # Ugly hack. Fix this later. I'm getting 2 extra columns with zero frequencies
+  observedFrequencies.pop(-1)
+  observedFrequencies.pop(-1)
+  perfectFrequencies.pop(-1)
+  perfectFrequencies.pop(-1)
+  index.pop(-1)
+  index.pop(-1)
+  vizData = {'Poisson':perfectFrequencies,'Observed':observedFrequencies}
+  df = pd.DataFrame(vizData,index=index)
+  print df
+
+  grouped = vincent.GroupedBar(df)
+  grouped.width = 800
+  grouped.height = 400
+  grouped.colors(brew='Set3')
+  grouped.axis_titles(x='Number of Breaches', y='Percent')
+  grouped.legend(title='Data Category')
+  # hack to get the right colors
+  grouped.scales[2].range = ['#ED1C24','#4682b4']
+  
   answer['count'] = len(times)
   answer['timeline'] = timesArray
-  #answer['frequencies'] = frequencies
-  #answer['percentages'] = percentages
-  answer['observed'] = combined
-  answer['perfect'] = perfectFrequencies
+  answer['vega'] = grouped.grammar()
   return json.dumps(answer)
 
 @api.route('/api/data_total')
