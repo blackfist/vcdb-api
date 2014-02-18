@@ -156,21 +156,38 @@ def getTimeline(thresh=1000000):
   index = []
   observedFrequencies = []
   for i in range(min(min(perfectPoisson),min(observedCounts)),max(max(perfectPoisson),max(observedCounts))):
-    index.append(str(i))
+    index.append(i) # why did I have this as str(i)?
     observedFrequencies.append(round(observedCounts.count(i)/float(len(observedCounts)),2))
+  print index
+  for i in range(max(index),min(index),-1):
+    print "checking if %s is missing from index." % i
+    if i not in index:
+      print "adding %s to index" % i
+      index.insert(i,i)
+      perfectFrequencies.insert(i,0.0)
+      observedFrequencies.insert(i,0.0)
+  # After rounding we sometimes get fields with 0.0 in the observation
+  for i in range(max(index),min(index),-1):
+    if perfectFrequencies[i] == 0 and observedFrequencies[i] == 0:
+      print "popping %s off of the list" % i
+      index.pop(i)
+      perfectFrequencies.pop(i)
+      observedFrequencies.pop(i)
+    else:
+      break
   #print "observedFrequencies is %s. Sum of that is %s." % (observedFrequencies,sum(observedFrequencies))
   #print "index is %s" % index
   #print "perfectFrequencies is %s. Sum of that is %s." %(perfectFrequencies,sum(perfectFrequencies))
-  # Ugly hack. Fix this later. I'm getting 2 extra columns with zero frequencies
-  observedFrequencies.pop(-1)
-  observedFrequencies.pop(-1)
-  perfectFrequencies.pop(-1)
-  perfectFrequencies.pop(-1)
-  index.pop(-1)
-  index.pop(-1)
+
+ 
   vizData = {'Poisson':perfectFrequencies,'Observed':observedFrequencies}
   df = pd.DataFrame(vizData,index=index)
-  print df
+  #print df
+  
+  # one last stat
+  finalObservedCounts = {}
+  for each in observedCounts:
+    finalObservedCounts[each] = finalObservedCounts.get(each,0) + 1
 
   grouped = vincent.GroupedBar(df)
   grouped.width = 800
@@ -183,6 +200,7 @@ def getTimeline(thresh=1000000):
   
   answer['count'] = len(times)
   answer['timeline'] = timesArray
+  answer['observedCounts'] = finalObservedCounts
   answer['vega'] = grouped.grammar()
   return json.dumps(answer)
 

@@ -45,9 +45,12 @@
   
   <h1>Distribution of Large Incidents</h1>
   <h2>Poisson Distribution?</h2>
-  <p id="poissonExplanation">The red bars show the frequency of incidents reported in a month. Blue bars show a perfect poisson distribution.<br/>
-  Showing data from 2012 through present day, breaches large than 1,000,000.</p>
-  <div id="poissonChart"></div>
+  <p id="poissonExplanation2012">The red bars show the frequency of incidents reported in a month. Blue bars show a perfect poisson distribution.<br/>
+  Showing data from 2012 through present day, breaches larger than 1,000,000.</p>
+  <div id="poissonChart2012"></div>
+  <p id="poissonExplanation2011">The red bars show the frequency of incidents reported in a month. Blue bars show a perfect poisson distribution.</br>
+      Showing data from 2011 through present day, breaches larger thatn 1,000,000.</p>
+  <div id="poissonChart2011"></div>
 
 </div>
 
@@ -87,9 +90,13 @@
         
         var paymentChart = breachchart;
         
-        $.getJSON('/api/timeline?earliest=2012', function(data) {
-          vg.parse.spec(data.vega, function(chart) { chart({el:"#poissonChart",renderer:'svg'}).update(); });
-          $('#poissonExplanation').append(' Lambda estimated is ' + data.lambda + '.');
+        $.getJSON('/api/timeline/threshold/100000?earliest=2012', function(data) {
+          vg.parse.spec(data.vega, function(chart) { chart({el:"#poissonChart2012",renderer:'svg'}).update(); });
+          $('#poissonExplanation2012').append(' Lambda estimated is ' + data.lambda + '.');
+        });
+        $.getJSON('/api/timeline/threshold/100000?earliest=2011', function(data) {
+          vg.parse.spec(data.vega, function(chart) { chart({el:"#poissonChart2011",renderer:'svg'}).update(); });
+          $('#poissonExplanation2011').append(' Lambda estimated is ' + data.lambda + '.');
         });
 
                                                       
